@@ -21,6 +21,7 @@
     "./node": "./src/node.js",
     "./dag": "./src/dag.js",
     "./extensions/strong": "./src/extensions/strong.js",
+    "./extensions/numbered": "./src/extensions/numbered.js",
     "./extensions/derive-node-props": "./src/extensions/derive-node-props.js",
     "./extensions/derivations/propagations/upstream": "./src/extensions/derivations/propagations/upstream.js",
     "./extensions/derivations/propagations/downstream": "./src/extensions/derivations/propagations/downstream.js",
