@@ -1,8 +1,8 @@
-const extendGraph = require('./extend')
+const { extend } = require('./extend')
 const deriveNodeProps = require('./extensions/derive-node-props')
 const partialOrder = require('./extensions/derivations/partial-order')
 
-const Dag = extendGraph([
+const Dag = extend([
 	require('./extensions/strong'),
 	require('./extensions/simple'),
 	require('./extensions/numbered'),

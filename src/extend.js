@@ -23,4 +23,4 @@ const extend2 = (extensions) => {
 	return Constructor
 }
 
-module.exports = extend1
+module.exports = { extend: extend1 }
