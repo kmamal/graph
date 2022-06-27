@@ -63,4 +63,4 @@ const deriveNodeProps = (properties) => {
 	}
 }
 
-module.exports = deriveNodeProps
+module.exports = { deriveNodeProps }
