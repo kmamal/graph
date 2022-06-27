@@ -5,6 +5,7 @@ const partialOrder = require('./extensions/derivations/partial-order')
 const Dag = extendGraph([
 	require('./extensions/strong'),
 	require('./extensions/simple'),
+	require('./extensions/numbered'),
 	require('./extensions/printable'),
 	deriveNodeProps([ partialOrder('_order') ]).extension,
 	{
