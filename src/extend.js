@@ -1,4 +1,4 @@
-const Graph = require('./graph')
+const { Graph } = require('./graph')
 const { noop } = require('@kmamal/util/function/noop')
 
 const extend1 = (extensions) => {
