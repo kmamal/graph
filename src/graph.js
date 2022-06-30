@@ -1,57 +1,6 @@
 const { Node } = require('./node')
 const { Edge } = require('./edge')
 
-const EMPTY_SET = {
-	get size () { return 0 },
-	* values () { },
-}
-
-const _addEdgeToNode = (map, node, edge) => {
-	let set = map.get(node)
-	if (!set) {
-		set = new Set()
-		map.set(node, set)
-	}
-	set.add(edge)
-}
-
-const _removeEdgeFromNode = (map, node, edge) => {
-	const set = map.get(node)
-	if (set.size === 1) {
-		map.delete(node)
-	} else {
-		set.delete(edge)
-	}
-}
-
-const _allEdges = (map) => {
-	let size = null
-	return {
-		get size () {
-			if (size !== null) { return size }
-			size = 0
-			for (const set of map.values()) { size += set.size }
-			return size
-		},
-		* values () {
-			for (const set of map.values()) {
-				for (const edge of set.values()) {
-					yield edge
-				}
-			}
-		},
-	}
-}
-
-const _nodesFor = (node, edges) => ({
-	get size () { return edges.size },
-	* values () {
-		for (const edge of edges.values()) {
-			yield edge.opposite(node)
-		}
-	},
-})
-
 class Graph {
 	constructor (options) {
 		this.Node = class extends Node {}
@@ -65,80 +14,160 @@ class Graph {
 
 	_initNode (node) {
 		node._incoming = new Map()
+		node._incomingNum = 0
 		node._outgoing = new Map()
+		node._outgoingNum = 0
+	}
+
+	_countIncoming (node) { return node._incomingNum }
+	_countOutgoing (node) { return node._outgoingNum }
+
+	* __iterateEdges (nodeMap) {
+		for (const set of nodeMap.values()) { yield* set }
+	}
+
+	* _iterateIncoming (node) { yield* this.__iterateEdges(node._incoming) }
+	* _iterateOutgoing (node) { yield* this.__iterateEdges(node._outgoing) }
+
+	_countParents (node) { return node._incoming.size }
+	_countChildren (node) { return node._outgoing.size }
+
+	* _iterateParents (node) { yield* node._incoming.keys() }
+	* _iterateChildren (node) { yield* node._outgoing.keys() }
+
+	_countEdges (source, target) {
+		return source._outgoing.get(target)?.size ?? 0
+	}
+
+	* _iterateEdges (source, target) {
+		yield* source._outgoing.get(target) ?? []
+	}
+
+	__addEdge (nodeMap, otherNode, edge) {
+		let edgeSet = nodeMap.get(otherNode)
+		if (!edgeSet) {
+			edgeSet = new Set()
+			nodeMap.set(otherNode, edgeSet)
+		}
+		const size = edgeSet.size
+		edgeSet.add(edge)
+		return size !== edgeSet.size
+	}
+
+	_addIncoming (target, source, edge) {
+		const wasAdded = this.__addEdge(target._incoming, source, edge)
+		if (wasAdded) { target._incomingNum++ }
+		return wasAdded
+	}
+
+	_addOutgoing (source, target, edge) {
+		const wasAdded = this.__addEdge(source._outgoing, target, edge)
+		if (wasAdded) { source._outgoingNum++ }
+		return wasAdded
+	}
+
+	__removeEdge (nodeMap, otherNode, edge) {
+		const edgeSet = nodeMap.get(otherNode)
+		if (!edgeSet || edgeSet.size === 0) { return }
+		const wasRemoved = edgeSet.delete(edge)
+		if (!wasRemoved) { return false }
+		if (edgeSet.size === 0) { nodeMap.delete(otherNode) }
+		return true
+	}
+
+	_removeIncoming (target, source, edge) {
+		const wasRemoved = this.__removeEdge(target._incoming, source, edge)
+		if (wasRemoved) { target._incomingNum-- }
+		return wasRemoved
+	}
+
+	_removeOutgoing (source, target, edge) {
+		const wasRemoved = this.__removeEdge(source._outgoing, target, edge)
+		if (wasRemoved) { source._outgoingNum-- }
+		return wasRemoved
 	}
 
 	_initEdge (edge, source, target) {
-		this.moveEdge(edge, source, target)
+		edge._source = source
+		edge._target = target
+		if (source) { this._addOutgoing(source, target, edge) }
+		if (target) { this._addIncoming(target, source, edge) }
 	}
 
-	getEdges (source, target) {
-		return source._outgoing.get(target) ?? EMPTY_SET
-	}
+	_getSource (edge) { return edge._source }
+	_getTarget (edge) { return edge._target }
 
-	moveEdge (edge, source, target) {
+	_moveEdge (edge, source, target) {
 		const { _source: oldSource, _target: oldTarget } = edge
 
-		if (oldSource !== source) {
-			oldSource && _removeEdgeFromNode(oldSource._outgoing, oldTarget, edge)
+		const sourceChanged = source !== oldSource
+		if (sourceChanged) {
 			edge._source = source
-			source && _addEdgeToNode(source._outgoing, target, edge)
+			if (oldSource) { this._removeOutgoing(oldSource, oldTarget, edge) }
+			if (source) { this._addOutgoing(source, target, edge) }
 		}
 
-		if (oldTarget !== target) {
-			oldTarget && _removeEdgeFromNode(oldTarget._incoming, oldSource, edge)
+		const targetChanged = target !== oldTarget
+		if (targetChanged) {
 			edge._target = target
-			target && _addEdgeToNode(target._incoming, source, edge)
+			if (oldTarget) { this._removeIncoming(oldTarget, oldSource, edge) }
+			if (target) { this._addIncoming(target, source, edge) }
 		}
+
+		return sourceChanged || targetChanged
 	}
 
-	source (edge) { return edge._source }
-	target (edge) { return edge._target }
+	incomingNum (node) { return this._countIncoming(node) }
+	outgoingNum (node) { return this._countOutgoing(node) }
+	adjacentNum (node) {
+		return this._countIncoming(node) + this._countOutgoing(node)
+	}
 
-	incoming (node) { return _allEdges(node._incoming) }
-	outgoing (node) { return _allEdges(node._outgoing) }
+	* incoming (node) { yield* this._iterateIncoming(node) }
+	* outgoing (node) { yield* this._iterateOutgoing(node) }
+	* adjacent (node) {
+		yield* this._iterateIncoming(node)
+		yield* this._iterateOutgoing(node)
+	}
 
-	// Optional but incredibly common
+	parentsNum (node) { return this._countParents(node) }
+	childrenNum (node) { return this._countChildren(node) }
+	neighborsNum (node) {
+		return this._countParents(node) + this._countChildren(node)
+	}
+
+	* parents (node) { yield* this._iterateParents(node) }
+	* children (node) { yield* this._iterateChildren(node) }
+	* neighbors (node) {
+		yield* this._iterateParents(node)
+		yield* this._iterateChildren(node)
+	}
+
+	getEdgesNum (source, target) { return this._countEdges(source, target) }
+	getEdges (source, target) { return this._iterateEdges(source, target) }
 
 	removeNode (node) {
-		for (const edge of this.adjacent(node).values()) {
+		for (const edge of this.adjacent(node)) {
 			this.removeEdge(edge)
 		}
 	}
 
-	removeEdge (edge) {
-		this.moveEdge(edge, null, null)
-	}
-
-	adjacent (node) {
-		return {
-			get size () { return node._incoming.size + node.outgoing().size },
-			* values () {
-				for (const edge of node._incoming.values()) { yield edge }
-				for (const edge of node._outgoing.values()) { yield edge }
-			},
-		}
-	}
+	source (edge) { return this._getSource(edge) }
+	target (edge) { return this._getTarget(edge) }
 
 	opposite (edge, node) {
-		const source = this.source(edge)
-		const target = this.target(edge)
+		const source = this._getSource(edge)
+		const target = this._getTarget(edge)
 		return node === source ? target
 					 : node === target ? source
 					 : null
 	}
 
-	parents (node) { return _nodesFor(node, this.incoming(node)) }
-	children (node) { return _nodesFor(node, this.outgoing(node)) }
-	neighbors (node) { return _nodesFor(node, this.adjacent(node)) }
-
-	setSource (edge, source) { this.moveEdge(edge, source, this.target(edge)) }
-	setTarget (edge, target) { this.moveEdge(edge, this.source(edge), target) }
-
-	reverseEdge (edge) {
-		const { _source: target, _target: source } = edge
-		this.moveEdge(source, target)
-	}
+	moveEdge (edge, source, target) { this._moveEdge(edge, source, target)}
+	setSource (edge, source) { this._moveEdge(edge, source, edge.target) }
+	setTarget (edge, target) { this._moveEdge(edge, edge.source, target) }
+	reverseEdge (edge) { this._moveEdge(edge, edge.target, edge.source) }
+	removeEdge (edge) { this._moveEdge(edge, null, null) }
 }
 
 module.exports = { Graph }

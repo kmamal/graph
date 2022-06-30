@@ -14,9 +14,9 @@ const extension = {
 
 	toString () {
 		return Array
-			.from(this.nodes().values())
+			.from(this.nodes())
 			.map((node) => {
-				const childNodes = Array.from(node.children().values())
+				const childNodes = Array.from(node.children())
 				return `${node.toString()} -> ${childNodes.join(', ')}`
 			})
 			.join('\n')

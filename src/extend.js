@@ -19,6 +19,9 @@ const extend2 = (extensions) => {
 	let Constructor = Graph
 	for (const Extension of extensions) {
 		Constructor = class extends Extension {}
+		for (const [ key, method ] of Object.entries(extension)) {
+			Constructor.prototype[key] = method
+		}
 	}
 	return Constructor
 }

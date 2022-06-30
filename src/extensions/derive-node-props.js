@@ -1,37 +1,5 @@
 
 const deriveNodeProps = (properties) => {
-	const _initNode = function (next, node, options) {
-		next.call(this, node, options)
-
-		for (const property of properties) {
-			for (const [ propKey, { derive } ] of Object.entries(property)) {
-				node[propKey] = derive(node)
-			}
-		}
-	}
-
-	const moveEdge = function (next, edge, source, target) {
-		const {
-			_source: oldSource,
-			_target: oldTarget,
-		} = edge
-
-		next.call(this, edge, source, target)
-
-		if (oldSource !== source) {
-			oldSource && recalculateAll(oldSource)
-			source && recalculateAll(source)
-		}
-
-		if (oldTarget !== target) {
-			oldTarget && recalculateAll(oldTarget)
-			target && recalculateAll(target)
-		}
-	}
-
-	const recalculateAll = (node) => properties
-		.forEach((property) => recalculate(node, property))
-
 	const recalculate = (node, property) => {
 		for (const [ propKey, { derive, propagate } ] of Object.entries(property)) {
 			const oldValue = node[propKey]
@@ -52,9 +20,46 @@ const deriveNodeProps = (properties) => {
 		}
 	}
 
+	const _recalculateAll = (node) => {
+		for (const property of properties) {
+			recalculate(node, property)
+		}
+	}
+
 	const extension = {
-		_initNode,
-		moveEdge,
+		_initNode (next, node, options) {
+			next.call(this, node, options)
+
+			for (const property of properties) {
+				for (const [ propKey, { derive } ] of Object.entries(property)) {
+					node[propKey] = derive(node)
+				}
+			}
+		},
+
+		_addIncoming (next, target, source, edge) {
+			const res = next.call(this, target, source, edge)
+			_recalculateAll(target)
+			return res
+		},
+
+		_addOutgoing (next, source, target, edge) {
+			const res = next.call(this, source, target, edge)
+			_recalculateAll(target)
+			return res
+		},
+
+		_removeIncoming (next, target, source, edge) {
+			const res = next.call(this, target, source, edge)
+			_recalculateAll(target)
+			return res
+		},
+
+		_removeOutgoing (next, source, target, edge) {
+			const res = next.call(this, source, target, edge)
+			_recalculateAll(target)
+			return res
+		},
 	}
 
 	return {
