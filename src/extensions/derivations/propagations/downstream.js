@@ -1,3 +1,3 @@
-const { Graph } = reqiure('../../../graph')
+const { Graph } = require('../../../graph')
 
 module.exports = Graph.prototype.outgoing
