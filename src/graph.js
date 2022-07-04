@@ -26,22 +26,20 @@ class Graph {
 		for (const set of nodeMap.values()) { yield* set }
 	}
 
-	* _iterateIncoming (node) { yield* this.__iterateEdges(node._incoming) }
-	* _iterateOutgoing (node) { yield* this.__iterateEdges(node._outgoing) }
+	_iterateIncoming (node) { return this.__iterateEdges(node._incoming) }
+	_iterateOutgoing (node) { return this.__iterateEdges(node._outgoing) }
 
 	_countParents (node) { return node._incoming.size }
 	_countChildren (node) { return node._outgoing.size }
 
-	* _iterateParents (node) { yield* node._incoming.keys() }
-	* _iterateChildren (node) { yield* node._outgoing.keys() }
+	_iterateParents (node) { return node._incoming.keys() }
+	_iterateChildren (node) { return node._outgoing.keys() }
 
 	_countEdges (source, target) {
 		return source._outgoing.get(target)?.size ?? 0
 	}
 
-	* _iterateEdges (source, target) {
-		yield* source._outgoing.get(target) ?? []
-	}
+	_iterateEdges (source, target) { return source._outgoing.get(target) ?? [] }
 
 	__addEdge (nodeMap, otherNode, edge) {
 		let edgeSet = nodeMap.get(otherNode)
@@ -68,7 +66,7 @@ class Graph {
 
 	__removeEdge (nodeMap, otherNode, edge) {
 		const edgeSet = nodeMap.get(otherNode)
-		if (!edgeSet || edgeSet.size === 0) { return }
+		if (!edgeSet || edgeSet.size === 0) { return false }
 		const wasRemoved = edgeSet.delete(edge)
 		if (!wasRemoved) { return false }
 		if (edgeSet.size === 0) { nodeMap.delete(otherNode) }
@@ -123,8 +121,8 @@ class Graph {
 		return this._countIncoming(node) + this._countOutgoing(node)
 	}
 
-	* incoming (node) { yield* this._iterateIncoming(node) }
-	* outgoing (node) { yield* this._iterateOutgoing(node) }
+	incoming (node) { return this._iterateIncoming(node) }
+	outgoing (node) { return this._iterateOutgoing(node) }
 	* adjacent (node) {
 		yield* this._iterateIncoming(node)
 		yield* this._iterateOutgoing(node)
@@ -136,8 +134,8 @@ class Graph {
 		return this._countParents(node) + this._countChildren(node)
 	}
 
-	* parents (node) { yield* this._iterateParents(node) }
-	* children (node) { yield* this._iterateChildren(node) }
+	parents (node) { return this._iterateParents(node) }
+	children (node) { return this._iterateChildren(node) }
 	* neighbors (node) {
 		yield* this._iterateParents(node)
 		yield* this._iterateChildren(node)
@@ -163,7 +161,7 @@ class Graph {
 					 : null
 	}
 
-	moveEdge (edge, source, target) { this._moveEdge(edge, source, target)}
+	moveEdge (edge, source, target) { this._moveEdge(edge, source, target) }
 	setSource (edge, source) { this._moveEdge(edge, source, edge.target) }
 	setTarget (edge, target) { this._moveEdge(edge, edge.source, target) }
 	reverseEdge (edge) { this._moveEdge(edge, edge.target, edge.source) }

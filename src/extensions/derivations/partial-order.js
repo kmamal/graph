@@ -4,9 +4,11 @@ const propagate = require('./propagations/downstream')
 const partialOrderDerivation = (propKey) => {
 	const getProp = (node) => node[propKey]
 
-	return ({
+	return {
 		[propKey]: {
 			derive: (node) => {
+				if (node.parentsNum() === 0) { return 0 }
+
 				const value = max([ ...node.parents() ].map(getProp)) + 1
 
 				if (node._graph.nodes && value > node._graph.nodes().size) {
@@ -17,7 +19,7 @@ const partialOrderDerivation = (propKey) => {
 			},
 			propagate,
 		},
-	})
+	}
 }
 
 module.exports = partialOrderDerivation

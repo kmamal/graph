@@ -1,2 +1,2 @@
 
-module.exports = (node) => node.outgoing()
+module.exports = (node) => node.children()

@@ -1,2 +1,2 @@
 
-module.exports = (node) => node.incoming()
+module.exports = (node) => node.parents()

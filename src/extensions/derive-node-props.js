@@ -1,21 +1,32 @@
+const { eq } = require('@kmamal/util/operators')
 
 const deriveNodeProps = (properties) => {
 	const recalculate = (node, property) => {
-		for (const [ propKey, { derive, propagate } ] of Object.entries(property)) {
+		for (const entry of Object.entries(property)) {
+			const [
+				propKey, {
+					derive,
+					propagate,
+					isEqual = eq,
+				},
+			] = entry
+
 			const oldValue = node[propKey]
 			const value = derive(node)
 
-			// TODO: _isEqual
-			if (value === oldValue) { continue }
+			if (isEqual(value, oldValue)) { continue }
 
 			node[propKey] = value
-			node.onChange && node.onChange(propKey, value, oldValue) // TODO: remove from here
 
-			if (!propagate) { continue }
+			if (propagate) {
+				const targets = propagate(node)
+				for (const target of targets) {
+					recalculate(target, property)
+				}
+			}
 
-			const targets = propagate(node)
-			for (const target of targets) {
-				recalculate(target, property)
+			if (node.onChange && node[propKey] === value) {
+				node.onChange(propKey, value, oldValue)
 			}
 		}
 	}
