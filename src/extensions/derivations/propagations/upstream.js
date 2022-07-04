@@ -1,3 +1,2 @@
-const { Graph } = require('../../../graph')
 
-module.exports = Graph.prototype.incoming
+module.exports = (node) => node.incoming()
