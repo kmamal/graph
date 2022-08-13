@@ -10,6 +10,7 @@ EXPORTS=$(find "./src/" -name *.js \
 	| grep -v 'node_modules' \
 	| grep -v '.test.js' \
 	| grep -v '/testing/' \
+	| grep -vE '/_[^/]+' \
 	| jq --raw-input --slurp '.
 			| split("\n") | .[:-1]
 			| map(.
