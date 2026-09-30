@@ -4,31 +4,31 @@
   "description": "graph",
   "repository": {
     "type": "git",
-    "url": "git@github.com:kmamal/graph.git"
+    "url": "git+ssh://git@github.com:kmamal/graph.git"
   },
   "scripts": {
-    "test": "./scripts/run-tests.sh",
-    "update-exports": "./scripts/update-exports.sh"
+    "test": "npx @kmamal/testing",
+    "update-exports": "node ./scripts/update-exports.mjs"
   },
   "license": "MIT",
   "dependencies": {
-    "@kmamal/util": "^0.0.91"
+    "@kmamal/util": "0.2.33"
   },
   "exports": {
-    "./edge": "./src/edge.js",
     "./graph": "./src/graph.js",
-    "./extend": "./src/extend.js",
-    "./node": "./src/node.js",
     "./dag": "./src/dag.js",
+    "./edge": "./src/edge.js",
     "./extensions/strong": "./src/extensions/strong.js",
+    "./extensions/simple": "./src/extensions/simple.js",
+    "./extensions/printable": "./src/extensions/printable.js",
     "./extensions/numbered": "./src/extensions/numbered.js",
     "./extensions/derive-node-props": "./src/extensions/derive-node-props.js",
-    "./extensions/derivations/propagations/upstream": "./src/extensions/derivations/propagations/upstream.js",
-    "./extensions/derivations/propagations/downstream": "./src/extensions/derivations/propagations/downstream.js",
     "./extensions/derivations/partial-order": "./src/extensions/derivations/partial-order.js",
-    "./extensions/simple": "./src/extensions/simple.js",
+    "./extensions/derivations/propagations/downstream": "./src/extensions/derivations/propagations/downstream.js",
+    "./extensions/derivations/propagations/upstream": "./src/extensions/derivations/propagations/upstream.js",
     "./extensions/logging": "./src/extensions/logging.js",
-    "./extensions/printable": "./src/extensions/printable.js",
+    "./extend": "./src/extend.js",
+    "./node": "./src/node.js",
     "./algorithms/clone": "./src/algorithms/clone.js"
   }
 }

@@ -1,6 +1,6 @@
 scripts
 **/*.test.js
+**/*.benchmark.js
 **/testing/
+**/benchmarking/
 **/_*
-**/NOTES.txt
-package.json~
